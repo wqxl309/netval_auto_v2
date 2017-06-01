@@ -14,6 +14,7 @@ class indicators:
         '索提诺比率':'sortino',
         '詹森指数':'jensen',
         '特雷诺指数':'treynor',
+        '期间收益率':'inret'
     }
 
     def __init__(self,valueinfo,indicator_list,freq):
@@ -44,6 +45,9 @@ class indicators:
             else:
                 delivery[item[0]] = eval(''.join(['self.calc_',item[1],'()']))
         return delivery
+
+    def calc_inret(self):
+        return self._netvals[-1,:]/self._netvals[0,:]-1
 
     def calc_annret(self):
         return np.mean(self._rets,axis=0)*indicators.freq_dict[self.freq]

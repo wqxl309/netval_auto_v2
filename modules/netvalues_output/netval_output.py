@@ -28,6 +28,8 @@ class netval_output:
             if not enddate:
                 enddate = dt.datetime.today().strftime('%Y%m%d')
             # 从净值数据库提取日度数据
+            if enddate < self.ipodate.strftime('%Y%m%d'): #所要求的区间还没有数据
+                return None
             data = pd.read_sql(''.join(['SELECT * FROM Net_Values WHERE date >=',startdate,' AND date<=',enddate]),conn_net)
             dates = data['Date']
             head = dates.values[0]    # 所取数据的最早日期
@@ -41,7 +43,7 @@ class netval_output:
             ttimes = w.tdays(head,tail,'Period='+period).Times  # head tail 所对应的日期有可能不是交易日
             tperiods = [dt.datetime.strftime(t,'%Y%m%d') for t in ttimes]
             needextra = False
-            if (tperiods[0] > head): # 使用周度、月度数据的情况下，确保第一个值为所取数据第一个 交易日
+            if (tperiods[0] > head) and freq in ['WEEK','MONTH']: # 使用周度、月度数据的情况下，确保第一个值为所取数据第一个 交易日
                 tmptimes = w.tdays(head,tperiods[0],'Period=D').Times
                 head = dt.datetime.strftime(tmptimes[0],'%Y%m%d')  # 将head设置为所提取区间的第一个交易日
                 needextra = True

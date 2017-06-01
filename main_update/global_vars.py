@@ -1,6 +1,6 @@
 
-dbdir_base = r'E:\netval_auto\database_rawfile'
-netdbdir_base = r'E:\netval_auto\database_netvalue'
+dbdir_base = r'E:\netval_auto_v2.0\database_rawfile'
+netdbdir_base = r'E:\netval_auto_v2.0\database_netvalue'
 filedir_base = r'E:\估值表'
 
 

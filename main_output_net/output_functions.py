@@ -40,7 +40,7 @@ def generate_output(products,outdir,startdate=False,enddate=False,freq='week',mk
     综合输出 所有产品
     indicator_info = {'indoutdir':...,'indlist': ... , 'riskfreerate':..., 'benchmark':... }
     """
-    netdbfolder= r'E:\netval_auto_v2.0\database_netvalue'  #r'\\JIAPENG-PC\database_netvalue'
+    netdbfolder= r'\\JIAPENG-PC\database_netvalue'
 
     writer_netval = pd.ExcelWriter(outdir)
     netvalues = {}
@@ -49,7 +49,8 @@ def generate_output(products,outdir,startdate=False,enddate=False,freq='week',mk
         ipodate = PRODUCTS_INFO[p]['ipodate']
         outobj = netval_output(netdbdir=netdbdir,ipodate=ipodate)
         netvals = outobj.take_netvalues(startdate=startdate,enddate=enddate,freq=freq,mktidx=mktidx,regmktidx=False)
-        netvals.to_excel(writer_netval,sheet_name=p,index=False)
+        if netvals is not None:  # 有数才输出
+            netvals.to_excel(writer_netval,sheet_name=p,index=False)
         netvalues[p] = netvals
     writer_netval.save()
 
@@ -57,6 +58,8 @@ def generate_output(products,outdir,startdate=False,enddate=False,freq='week',mk
         writer_ind = pd.ExcelWriter(indicators_info['indoutdir'])
         indlst = indicators_info['indlist']
         for p in products:
+            if netvalues[p] is None: #没有净值数据，也不必计算指标
+                continue
             if indicators_info['benchmark'] in netvalues[p].columns:
                 bc = netvalues[p][indicators_info['benchmark']].values
             else:
