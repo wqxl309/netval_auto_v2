@@ -34,7 +34,7 @@ class indicators:
         self._annvol = self.calc_annvol()
         self._maxdd = self.calc_maxdd()
         # 是否需要计算 CAPM
-        if ('jensen' in indicator_list) or ('treynor' in indicator_list):
+        if ('詹森指数' in indicator_list) or ('特雷诺指数' in indicator_list):
             self.capm_paras = self.calc_CAPM()
 
     def take_orders(self):
@@ -80,10 +80,10 @@ class indicators:
         return (self._annret-self.rf)/self.calc_anndownvol()
 
     def calc_jensen(self):
-        pass
+        return self.capm_paras[1,:]*indicators.freq_dict[self.freq]
 
     def calc_treynor(self):
-        pass
+        return (self._annret-self.rf)/self.capm_paras[0,:]
 
     def calc_winloss_recorders(self):
         wins = np.ones([1,self._size[1]])
@@ -106,10 +106,11 @@ class indicators:
 
     def calc_CAPM(self):
         benchnet = np.array(self.valueinfo.get('benchmark'))
-        if not benchnet:
+        if benchnet is None:
             raise Exception('No benchmark is provided, can not calc CAPM !')
-        benchret = benchnet[1:,:]/benchnet[:-1,:]-1
+        benchret = benchnet[1:]/benchnet[:-1]-1
         x = np.column_stack([benchret-self.rf,np.ones_like(benchret)])
         y = self._rets-self.rf
-        paras = (x.transpose()*x)**-1*x.transpose()*y
+        inv1 = np.linalg.inv(np.dot(x.transpose(),x))
+        paras = np.dot(np.dot(inv1,x.transpose()),y)
         return paras
