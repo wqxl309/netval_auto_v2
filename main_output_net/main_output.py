@@ -2,8 +2,8 @@ from main_output_net.output_functions import *
 from remotewind import w
 
 
-if __name__ == '__main__':
-    configure = get_configure('../configure.txt')
+if __name__=='__main__':
+    configure = get_configure('./configure.txt')
     confkeys = configure.keys()
 
     products = configure['productadd']
@@ -31,13 +31,15 @@ if __name__ == '__main__':
         raise Exception(u'未设定数据频率')
 
     # 输出路径
-    outdir=r'..\输出结果' + '\\'+ filename + '.xlsx'
+    outdir=r'.\输出结果' + '\\'+ filename + '_净值.xlsx'
     # 提取需要计算的指标
     indicators_info = {}
     if 'indicators' in confkeys and configure['indicators'][0]:
-        indicators_info['indoutdir'] = r'..\输出结果' + '\\'+ filename + '_指标.xlsx'
+        indicators_info['indoutdir'] = r'.\输出结果' + '\\'+ filename + '_指标.xlsx'
         indicators_info['indlist'] = configure['indicatoradd']
         indicators_info['benchmark'] = configure.get('benchmark')[0]
         indicators_info['riskfreerate'] = float(configure.get('riskfreerate')[0])
 
     generate_output(products=products,outdir=outdir,startdate=startdate,enddate=enddate,freq=freq,mktidx=mktidx,indicators_info=indicators_info)
+
+    print('数据提取成功！')
