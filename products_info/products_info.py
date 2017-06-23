@@ -13,5 +13,5 @@ PRODUCTS_INFO = \
 
         '国道砺石二号':{'pname':'国道砺石二号'  ,'pcode':'SM8060','ipodate':dt.date(2016,10,10), 'confirmdays':2,'precision':4,'nickname':'GuodaoLS2'},
         '烜鼎鑫诚九号':{'pname':'烜鼎鑫诚九号'  ,'pcode':'SR0165','ipodate':dt.date(2016,12,7),  'confirmdays':2,'precision':4,'nickname':'Xuanding9'},
-#        '星盈七号':    {'pname':'星盈七号'       ,'pcode':'SM9136','ipodate':dt.date(2016,11,16), 'confirmdays':2,'precision':4,'nickname':'Xingying7'},
+    #    '星盈7号':    {'pname':'星盈7号'       ,'pcode':'SM9136','ipodate':dt.date(2016,11,16), 'confirmdays':2,'precision':4,'nickname':'Xingying7'},
     }

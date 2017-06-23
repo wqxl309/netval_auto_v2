@@ -23,7 +23,7 @@ class netvalues_base:
         newtables=sorted(list(savedtbs.difference(processedtbs)))
         return newtables
 
-    def table_to_netdb(self,tablename,codedict,indexmark='科目代码',valcols=('市值','市值本币')):
+    def table_to_netdb(self,tablename,codedict,indexmark='科目代码',defaultvalcols=('市值','市值本币')):
         """
         从已经存储到数据库中的估值表中提取计算净值所需的基础元素，更新至netdb中
         更新前需检查 PROCESSED_TABLES 中是否已经拥有了该表格，已经存在的话就不能写入，报错
@@ -36,26 +36,40 @@ class netvalues_base:
         if not codedict:
             print('Codedict is empty can not update table : %s' % tablename)
         output_dict = {} # 存储提取出的数值的字典
+        rev_codedict = {} # 以行名(indexmark列对应的值)为KEY
+        valcols = [indexmark]
         for cd in codedict:  # 初始化输出字典
             output_dict[cd] = 0
-        rev_codedict = {v:k for k,v in codedict.items()}
+            cditem = codedict[cd]
+            if len(cditem)>1:
+                valcols.append(cditem[1])   # 把非默认的列提取出来
+                rev_codedict[cditem[0]] = (cd,cditem[1])
+            else:
+                rev_codedict[cditem[0]] = (cd,)
+        #rev_codedict = {v[0]:k for k,v in codedict.items()}   # 以行名为KEY，对应要素表列名为值的字典
+        # 提取数据
         with db_assistant(self._dbdir) as db:
             cols = db.get_table_cols(tablename)
             # 匹配用作存储的值，同一只产品有些会是市值 、有些市值本币 所以需要逐一匹配
             valmark = None
-            for col in valcols:
+            for col in defaultvalcols:
                 if col in cols:
                     valmark = col
                     break
             if not valmark:
                 raise Exception('在表格 %s 中没有匹配到存储数值的列' %tablename)
+            else:
+                valcols.insert(1,valmark)
             cursor = db.connection.cursor()
-            exeline=''.join(['SELECT ',indexmark,',',valmark,' FROM ',tablename])
-            temp = cursor.execute(exeline).fetchall()  # 提取 indexmark 列对应的值
-            for row in temp:
+            exeline=''.join(['SELECT ',','.join(valcols),' FROM ',tablename])
+            rowvals = cursor.execute(exeline).fetchall()  # 提取 indexmark 列对应的值
+            for row in rowvals:
                 rowname = row[0].strip()
                 if rowname in rev_codedict:
-                    output_dict[rev_codedict[rowname]] = row[1]
+                    item = rev_codedict[rowname]
+                    itemcol = item[1] if len(item)>1 else valmark
+                    output_dict[item[0]] = row[valcols.index(itemcol)]
+        # 写入 netdb 元素表
         filedate = tablename[-8:]
         with db_assistant(self._netdbdir) as netdb:
             base_titles = ['date TEXT']
@@ -77,7 +91,7 @@ class netvalues_base:
                 netdb.connection.commit()
                 print('Update Net_Values_Base with table %s succed !' %tablename)
 
-    def update_netdb(self,codedict,indexmark='科目代码',valcols=('市值','市值本币')):
+    def update_netdb(self,codedict,indexmark='科目代码',defaultvalcols=('市值','市值本币')):
         """ 将所有需要更新的表格的基础元素逐一写入数据库 """
         if not codedict:    # 没有提供codedict
             print('No codedict provided,not updating')
@@ -85,7 +99,7 @@ class netvalues_base:
         newtables = self.get_newtables()  # 提取还未更新的表格的列表
         if newtables:
             for tablename in newtables:
-                self.table_to_netdb(tablename=tablename,codedict=codedict,indexmark=indexmark,valcols=valcols)
+                self.table_to_netdb(tablename=tablename,codedict=codedict,indexmark=indexmark,defaultvalcols=defaultvalcols)
             print('Updated Net_Values_Base from %s to %s ' %(newtables[0][-8:],newtables[-1][-8:]))
         else:
             print('Netval_db already update to the latest !')
@@ -93,4 +107,3 @@ class netvalues_base:
     def check_dupicate_netdb(self):
         """ 检查表格中是否有重复日期 """
         pass
-
