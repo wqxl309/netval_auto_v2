@@ -24,6 +24,7 @@ def netval_plot():
     if mktidx:
         for dumi in range(len(mktidx)):
             ax.plot(idxdata_sig[:,dumi],colors[dumi],label=mktidx[dumi],lw=2)
+
     plt.xticks(rotation=70)
     plt.xticks(showidx,netdate.iloc[showidx])
     plt.legend(loc='upper left')

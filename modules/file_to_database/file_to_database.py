@@ -108,10 +108,10 @@ class rawfile_process:
         tablename = tbname_dict['tablename']
         with db_assistant(dbdir = self._dbdir) as db:
             db.create_db_table(tablename=tablename,titles=titles,replace=replace)  # 创建表格
-            data=xlrd.open_workbook(tabledir)
+            data = xlrd.open_workbook(tabledir)
             table = data.sheets()[0]
             # 寻找正表起始行
-            startline=-1
+            startline = -1
             for dumi in range(table.nrows):
                 try:
                     # 检查首个元素类型，如果能转换为数值则为应该记录的行的起始行
@@ -119,7 +119,7 @@ class rawfile_process:
                 except ValueError:
                     continue
                 else:
-                    startline=dumi
+                    startline = dumi
                     break
             if startline==-1: # 读完整个文件都没找到起始行则程序报错
                 raise Exception('Can not find startline for table : %s' % tablename)

@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from pandas.io import sql
 from remotewind import w
+#from WindPy import w
 
 from modules.database_assistant.database_assistant import *
 
@@ -99,7 +100,6 @@ class netvalues_calculation:
 
             netvals = pd.DataFrame(np.column_stack([dates.values,netreal,netcum,np.cumprod(1+rets)*netreal[0],rets,amtchg,np.cumsum(amtchg)]),
                                  columns=['Date','NetSingle','NetCumulated','NetCompensated','CompReturns','AmtChg','AmtCumChg'])
-
             sql.to_sql(netvals,name='Net_Values',con=conn_net,if_exists='replace',index=False)
             print(' '.join(['%s : Netvalues updated from' %self.pname,firstdate,'to',dates.values[-1]]))
         w.close()
