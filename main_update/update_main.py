@@ -1,10 +1,12 @@
 import threading
-
+import sys
+sys.path.append(r'E:\netval_auto_v2.0')
 from modules.file_to_database.file_to_database import *
 from modules.netvalues_base.netvalues_base import *
 from modules.netvalues_calculation.netval_calculation import *
 from products_info.global_vars import *
 from products_info.products_info import *
+
 
 if __name__ == '__main__':
 
