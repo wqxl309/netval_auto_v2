@@ -29,7 +29,7 @@ class email_processor:
         emailids = allmails[0].decode().split()
         for emlid in emailids:
             tp,emldata = M.fetch(emlid, '(RFC822)') # 提取 byte 格式
-            msg = self.email_parse(emldata=emldata,ftype='bytes')
+            msg = self.email_parse(emldata=emldata[0][1],ftype='bytes')
             emlinfo = self.email_info(msg=msg,elements=('Date','From','Subject'))
             newpath = os.path.join(self._savepath,emlinfo[order[0]],emlinfo[order[1]])  # save email based on order ex.date/from
             if not os.path.exists(newpath):
@@ -83,24 +83,17 @@ class email_processor:
             # get subject
             sub = msg.get('Subject')
             subh= email.header.decode_header(sub)
-            try:
-                substr = subh[0][0].decode(subh[0][1])
-            except AttributeError:
-                substr = subh[0][0]
+            if subh[0][1] is None:
+                if type(subh[0][0]) is bytes:
+                    substr = subh[0][0].decode()
+                else:
+                    substr = subh[0][0]
+            else:
+                try:
+                    substr = subh[0][0].decode(subh[0][1])
+                except AttributeError:
+                    substr = subh[0][0]
             emailinfo['Subject'] = substr
-        if 'Date' in elements:  # can not take Time only without date !
-            # get date and time
-            dttm = msg.get('Date')
-            dttm = dttm.strip().replace(',','').split(' ')
-            dates = ' '.join(dttm[0:3])
-            try:
-                datestr = time.strftime('%Y%m%d',time.strptime(dates,'%d %b %Y'))
-            except:
-                t=1
-            emailinfo['Date'] = datestr
-            if 'Time' in elements:
-                timestr = dttm[3]
-                emailinfo['Time'] = timestr
         if 'From' in elements:
             # get sender's email
             fromh = email.header.decode_header(msg.get('From'))
@@ -110,13 +103,33 @@ class email_processor:
                         fromstr = fh[0].decode()
                     except AttributeError:
                         fromstr = fh[0]
-                    matched = re.search('<[\w\W]+@[\w\W]+>',fromstr)
-                    if matched is not None:
-                        fromstr = matched.group()[1:-1]
-                    break
+                    if '<' in fromstr and '>' in fromstr:
+                        matched = re.search('<[\w\W]+@[\w\W]+>',fromstr)
+                        if matched is not None:
+                            fromstr = matched.group()[1:-1]
+                            break
+                    else:
+                        matched = re.search('[\w\W]+@[\w\W]+',fromstr)
+                        if matched is not None:
+                            fromstr = matched.group()
+                            break
             else:
                 fromstr = None
             emailinfo['From'] = fromstr
+        if 'Date' in elements:  # can not take Time only without date !
+            # get date and time
+            dttm = msg.get('Date')
+            dttm = dttm.split(',')
+            try:
+                dttm = dttm.strip().split(' ')  # a string itself
+            except AttributeError:
+                dttm = dttm[-1].strip().split(' ')   # a list whith second as fulldate
+            dates = ' '.join(dttm[0:3])
+            datestr = time.strftime('%Y%m%d',time.strptime(dates,'%d %b %Y'))
+            emailinfo['Date'] = datestr
+            if 'Time' in elements:
+                timestr = dttm[3]
+                emailinfo['Time'] = timestr
         return emailinfo
 
     def email_process(self,msg,pth,attachpatterns=None,savecontent=False):
@@ -151,19 +164,25 @@ class email_processor:
                         result_file = os.path.join(pth,cname)
                 if result_file:  # file that need to be writen exists
                     try:
-                        with open(result_file, "wb") as f:
-                            f.write(content)
+                        if not os.path.exists(result_file):
+                            print('Wringting file ...')
+                            with open(result_file, "wb") as f:
+                                f.write(content)
                     except BaseException as e:
-                        print("[-]Warning : Write file of email {0} failed: {1}".format(subject, e))
+                        if os.path.exists(result_file):
+                            os.system('del /Q %s' %result_file)
+                        print('[-]Warning : Write file of email {0} failed: {1}'.format(subject, e))
+                    else:
+                        print('[-]Success : Process email {0} finished! '.format(subject))
 
 
 if __name__=='__main__':
-    username='wqxl309@126.com'
-    password = 'Wqxl7309'
-    protocol = 'pop3'
-    host = 'pop.126.com'
-    savepath = r'E:\netval_auto_v2.0\modules\emails_download\test126'
+    username='baiquaninvest@baiquaninvest.com'
+    password = 'Baiquan1818'
+    protocol = 'imap'
+    host = 'imap.qiye.163.com'
+    savepath = r'E:\netval_auto_v2.0\modules\emails_download\test163'
 
     processor = email_processor(protocol=protocol,host=host,username=username,password=password,savepath=savepath)
-    #processor.imap4(mailbox='INBOX',searchtype='ALL',attachpatterns=None,savecontent=True)
-    processor.pop3(attachpatterns=None,savecontent=True)
+    processor.imap4(mailbox='INBOX',searchtype='UNSEEN',attachpatterns=None,savecontent=True)
+    #processor.pop3(attachpatterns=None,savecontent=True)
