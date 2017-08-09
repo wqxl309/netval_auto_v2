@@ -10,21 +10,35 @@ import time
 
 
 class email_processor:
-    def __init__(self,protocol,host,username,password,savepath):
-        self._protocol = protocol
+    def __init__(self,protocol,host,username,password,savepath,needSSL=True):
+        self._protocol = protocol.lower()
         self._host = host
         self._username = username
         self._password = password
         self._portdict = {'pop':110,'pop3':110,'imap':143,'imap4':143}
         self._port = self._portdict[self._protocol.lower()]
+        self._needSSL = needSSL
         self._savepath = savepath
+        if not os.path.exists(self._savepath):
+            os.system('mkdir {0}'.format(savepath))
 
     def imap4(self,mailbox='INBOX',searchtype='ALL',attachpatterns=None,savecontent=False,order=('Date','From')):
-        """ process emails in mailbox with imap4 protocal """
-        M = imaplib.IMAP4(self._host)
-        M.login(user=self._username, password=self._password)
+        """ process emails in mailbox with imap4 protocol """
+        if self._protocol not in ('imap','imap4'):
+            raise BaseException('Slected protocol {0} while using IMAP !'.format(self._protocol))
+        if self._needSSL:
+            M = imaplib.IMAP4_SSL(self._host)
+        else:
+            M = imaplib.IMAP4(self._host)
+        result,message = M.login(user=self._username, password=self._password)
+        if result=='NO':
+            print('[+]{0} login failed : {1}'.format(self._username,message[0].decode()))
+            return
+        else:
+            print('[+]{0} login Successfully !'.format(self._username))
         result,message = M.select(mailbox)
-        print(result,message)
+        if result=='NO':
+            print('[+]Select mailbox {0} failed for {1}'.format(mailbox,message[0].decode()))
         typ,allmails = M.search(None, searchtype)  # 找到邮件 arg2 'UNSEEN'
         emailids = allmails[0].decode().split()
         for emlid in emailids:
@@ -35,13 +49,25 @@ class email_processor:
             if not os.path.exists(newpath):
                 os.system('mkdir %s' %newpath)
             self.email_process(msg=msg,pth=newpath,attachpatterns=attachpatterns,savecontent=savecontent)
-        M.close()  # close the currently selected mailbox
-        M.logout()
+        result,message = M.close()  # close the currently selected mailbox
+        if result=='NO':
+            print('[+]Close mailbox {0} failed for {1}'.format(mailbox,message[0].decode()))
+        result,message = M.logout()
+        if result=='NO':
+            print('[+]{0} logout failed : {1}'.format(self._username,message[0].decode()))
+        else:
+            print('[+]{0} logout Successfully !'.format(self._username))
 
     def pop3(self,attachpatterns=None,savecontent=False,order=('Date','From')):
-        pop_conn = poplib.POP3(host=self._host)
+        if self._protocol not in ('pop','pop3'):
+            raise BaseException('[-]Slected protocol {0} while using IMAP !'.format(self._protocol))
+        if self._needSSL:
+            pop_conn = poplib.POP3_SSL(host=self._host)
+        else:
+            pop_conn = poplib.POP3(host=self._host)
         pop_conn.user(self._username)
         pop_conn.pass_(self._password)
+        print('[+]{0} login Successfully !'.format(self._username))
         stat = pop_conn.stat()
         totnum = stat[0]
         for dumi in range(1,totnum+1):
@@ -62,6 +88,7 @@ class email_processor:
                 os.system('mkdir %s' %newpath)
             self.email_process(msg=msg,pth=newpath,attachpatterns=attachpatterns,savecontent=savecontent)
         pop_conn.quit()
+        print('[+]{0} logout Successfully !'.format(self._username))
 
     def email_parse(self,emldata,ftype='bytes'):
         """ parese the email and generate msg"""
@@ -74,7 +101,7 @@ class email_processor:
         elif ftype=='file':
             msg = email.message_from_file(emldata)
         else:
-            raise BaseException('Unrecognized emldata type!')
+            raise BaseException('[-]Unrecognized emldata type!')
         return msg
 
     def email_info(self,msg,elements=('Date','Time','From','Subject')):
@@ -135,7 +162,8 @@ class email_processor:
     def email_process(self,msg,pth,attachpatterns=None,savecontent=False):
         """
             process single email, save the contents
-            if attachtype==None, then download all attachments
+            attachpatterns ex.{keywords:[k1,k2] , 'matchtype':'all' / 'any'}
+            if attachpatterns==None, then download all attachments
         """
         emailinfo = self.email_info(msg=msg,elements=('Date','From','Subject'))
         subject = emailinfo['Subject']
@@ -145,44 +173,54 @@ class email_processor:
             if not part.is_multipart():
                 filename = part.get_filename()
                 content = part.get_payload(decode=True)
-                if filename:  # Attachment
+                if filename:  # found Attachment
                     dh = email.header.decode_header(filename)
                     if dh[0][1] is not None:
                         filenm = dh[0][0].decode(dh[0][1])
                     else:
                         filenm = dh[0][0]
-                    if attachpatterns:
-                        for pat in attachpatterns: # all patterns must be matched
-                            if pat not in filenm:
-                                print("[-]Warning : required pattern: {0} not found in attachment name: {1}".format(pat,filenm))
-                            break
-                    else:  # attchement name passed required check
+                    if attachpatterns:  # 需要匹配附件关键字
+                        matchtype = attachpatterns.get('matchtype')
+                        if matchtype is None:
+                            matchtype = 'ALL'
+                        else:
+                            matchtype = matchtype.upper()
+                        for pat in attachpatterns['keywords']:
+                            haspat =  pat in filenm
+                            if matchtype=='ALL' and (not haspat):  # 需要完全匹配 有未匹配项,匹配失败
+                                print("[+]Required pattern: {0} not found in attachment name: {1}".format(pat,filenm))
+                                break  # 匹配失败 退出循环，没有可下载附件
+                            elif matchtype=='ALL' and haspat: # 需要任一匹配 已有匹配项，匹配成功
+                                print("[+]Pattern: {0} found in attachment name: {1}".format(pat,filenm))
+                                result_file = os.path.join(pth, filenm)
+                                break  # 匹配成功 退出循环，可下载当前附件
+                    else:  # 不需要匹配附件关键字，直接下载找到的附件
                         result_file = os.path.join(pth, filenm)
-                else:
-                    if savecontent:
+                else: # not found Attachment
+                    if savecontent: # save plain text as html
                         cname = ''.join([subject,'_content_',str(ctcount),'.html'])
                         result_file = os.path.join(pth,cname)
                 if result_file:  # file that need to be writen exists
                     try:
                         if not os.path.exists(result_file):
-                            print('Wringting file ...')
+                            print('[+]Wringting file ...')
                             with open(result_file, "wb") as f:
                                 f.write(content)
                     except BaseException as e:
                         if os.path.exists(result_file):
                             os.system('del /Q %s' %result_file)
-                        print('[-]Warning : Write file of email {0} failed: {1}'.format(subject, e))
+                        print('[-]Write file of email {0} failed: {1}'.format(subject, e))
                     else:
-                        print('[-]Success : Process email {0} finished! '.format(subject))
+                        print('[+]Process email {0} finished! '.format(subject))
 
 
 if __name__=='__main__':
-    username='baiquaninvest@baiquaninvest.com'
+    username = 'baiquaninvest@baiquaninvest.com'
     password = 'Baiquan1818'
     protocol = 'imap'
     host = 'imap.qiye.163.com'
-    savepath = r'E:\netval_auto_v2.0\modules\emails_download\test163'
+    savepath = r'E:\netval_auto_v2.0\modules\emails_download\test_criterion'
 
     processor = email_processor(protocol=protocol,host=host,username=username,password=password,savepath=savepath)
-    processor.imap4(mailbox='INBOX',searchtype='UNSEEN',attachpatterns=None,savecontent=True)
-    #processor.pop3(attachpatterns=None,savecontent=True)
+    processor.imap4(mailbox='INBOX',searchtype='FROM <chunlin@eastmoney.com>',attachpatterns=None,savecontent=True)
+    #processor.pop3(attachpatterns=None,savecontent=True) (FROM "chunlin@eastmoney.com")

@@ -152,6 +152,14 @@ def pop3(username,password,host,port=110):
 
 
 if __name__=='__main__':
-    pop3(username=username,password=password,host=host)
-    # print()
-    imap4(username=username,password=password,host=host)
+    # pop3(username=username,password=password,host=host)
+    # # print()
+    # imap4(username=username,password=password,host=host)
+
+    M = imaplib.IMAP4_SSL(host)
+    result,message = M.login(username, password)
+    print(result,message)
+    result,message = M.select('INBOX')
+    print(result,message)
+    for t in M.list()[1]:
+        print(t.decode())
