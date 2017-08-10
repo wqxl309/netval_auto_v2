@@ -104,15 +104,3 @@ class email_processor_product(email_processor):
 
     def download_pop3(self):
         pass
-
-
-if __name__=='__main__':
-    import products_info.products_info as pf
-    host = 'imap.qiye.163.com' #'imap.qiye.163.com' #'smtp.qiye.163.com'
-    username = 'baiquaninvest@baiquaninvest.com'
-    password = 'Baiquan1818'
-    savepath = r'E:\估值表'
-    lastuidpath = r'E:\netval_auto_v2.0\modules\emails_download\last_uid.txt'
-    pfilter = pf.EMAIL_FILTER
-    obj = email_processor_product(host,username,password,savepath,lastuidpath,product_filters=pfilter)
-    obj.download_imap4(downloadtype='ALL')

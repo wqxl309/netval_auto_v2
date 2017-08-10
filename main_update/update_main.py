@@ -20,6 +20,8 @@ if __name__ == '__main__':
     pfilter = EMAIL_FILTER
     downloader = email_processor_product(host,username,password,savepath,lastuidpath,product_filters=pfilter)
     downloader.download_imap4(downloadtype='ALL')
+    print()
+    print()
 
     # 更新估值表 至 数据库 采用多线程加速更新 须确保各个产品所在的线程更新完成后再开始计算该产品的净值
     update_treads = []
@@ -39,8 +41,8 @@ if __name__ == '__main__':
         t.join()
     del update_treads
     print('rawfile update finished')
-    print('')
-    print('')
+    print()
+    print()
 
     # 提取估值表基础元素
     base_treads = []
@@ -60,8 +62,8 @@ if __name__ == '__main__':
         t.join()
     del base_treads
     print('netval base update finished')
-    print('')
-    print('')
+    print()
+    print()
 
     # 计算净值
     calc_treads = []
@@ -78,5 +80,5 @@ if __name__ == '__main__':
         calculator = netvalues_calculation(pname=p['pname'],netdbdir=netdbdir,confirmdays=p['confirmdays'],precision=p['precision'])
         calculator.generate_netvalues(earnvars = earnvars)
     print('netval calc update finished')
-    print('')
-    print('')
+    print()
+    print()
