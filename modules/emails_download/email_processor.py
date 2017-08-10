@@ -23,7 +23,9 @@ class email_processor:
             os.system('mkdir {0}'.format(savepath))
 
     def imap4(self,mailbox='INBOX',searchtype='ALL',attachpatterns=None,savecontent=False,order=('Date','From')):
-        """ process emails in mailbox with imap4 protocol """
+        """ process emails in mailbox with imap4 protocol
+            attachpatterns ex.{keywords:[k1,k2] , 'matchtype':'all' / 'any'}
+        """
         if self._protocol not in ('imap','imap4'):
             raise BaseException('Slected protocol {0} while using IMAP !'.format(self._protocol))
         if self._needSSL:
@@ -39,10 +41,10 @@ class email_processor:
         result,message = M.select(mailbox)
         if result=='NO':
             print('[+]Select mailbox {0} failed for {1}'.format(mailbox,message[0].decode()))
-        typ,allmails = M.search(None, searchtype)  # 找到邮件 arg2 'UNSEEN'
+        _,allmails = M.uid('search',None, searchtype)
         emailids = allmails[0].decode().split()
         for emlid in emailids:
-            tp,emldata = M.fetch(emlid, '(RFC822)') # 提取 byte 格式
+            _,emldata = M.uid('fetch',emlid, '(RFC822)') # 提取 byte 格式
             msg = self.email_parse(emldata=emldata[0][1],ftype='bytes')
             emlinfo = self.email_info(msg=msg,elements=('Date','From','Subject'))
             newpath = os.path.join(self._savepath,emlinfo[order[0]],emlinfo[order[1]])  # save email based on order ex.date/from
@@ -59,6 +61,7 @@ class email_processor:
             print('[+]{0} logout Successfully !'.format(self._username))
 
     def pop3(self,attachpatterns=None,savecontent=False,order=('Date','From')):
+        """ attachpatterns ex.{keywords:[k1,k2] , 'matchtype':'all' / 'any'} """
         if self._protocol not in ('pop','pop3'):
             raise BaseException('[-]Slected protocol {0} while using IMAP !'.format(self._protocol))
         if self._needSSL:
@@ -111,10 +114,7 @@ class email_processor:
             sub = msg.get('Subject')
             subh= email.header.decode_header(sub)
             if subh[0][1] is None:
-                if type(subh[0][0]) is bytes:
-                    substr = subh[0][0].decode()
-                else:
-                    substr = subh[0][0]
+                substr = subh[0][0].decode() if type(subh[0][0]) is bytes else subh[0][0]
             else:
                 try:
                     substr = subh[0][0].decode(subh[0][1])
@@ -175,16 +175,10 @@ class email_processor:
                 content = part.get_payload(decode=True)
                 if filename:  # found Attachment
                     dh = email.header.decode_header(filename)
-                    if dh[0][1] is not None:
-                        filenm = dh[0][0].decode(dh[0][1])
-                    else:
-                        filenm = dh[0][0]
+                    filenm = dh[0][0].decode(dh[0][1]) if dh[0][1] is not None else dh[0][0]
                     if attachpatterns:  # 需要匹配附件关键字
                         matchtype = attachpatterns.get('matchtype')
-                        if matchtype is None:
-                            matchtype = 'ALL'
-                        else:
-                            matchtype = matchtype.upper()
+                        matchtype = 'ALL' if matchtype is None else matchtype.upper()
                         for pat in attachpatterns['keywords']:
                             haspat =  pat in filenm
                             if matchtype=='ALL' and (not haspat):  # 需要完全匹配 有未匹配项,匹配失败
@@ -222,5 +216,5 @@ if __name__=='__main__':
     savepath = r'E:\netval_auto_v2.0\modules\emails_download\test_criterion'
 
     processor = email_processor(protocol=protocol,host=host,username=username,password=password,savepath=savepath)
-    processor.imap4(mailbox='INBOX',searchtype='FROM <chunlin@eastmoney.com>',attachpatterns=None,savecontent=True)
+    processor.imap4(mailbox='INBOX',searchtype='UNFLAGGED',attachpatterns=None,savecontent=True)
     #processor.pop3(attachpatterns=None,savecontent=True) (FROM "chunlin@eastmoney.com")

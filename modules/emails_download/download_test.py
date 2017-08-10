@@ -47,7 +47,7 @@ def imap4(username,password,host,port=143):
     M = imaplib.IMAP4_SSL(host)
     M.login(username, password)
     M.select('INBOX')
-    typ, allmails = M.search(None, 'ALL')  # 找到邮件 arg2 'UNSEEN'
+    _, allmails = M.search(None, 'ALL')  # 找到邮件 arg2 'UNSEEN'
     mailids = allmails[0].decode().split()
     count = 0
     for mlid in mailids:
@@ -156,10 +156,26 @@ if __name__=='__main__':
     # # print()
     # imap4(username=username,password=password,host=host)
 
+    # M = imaplib.IMAP4_SSL(host)
+    # result,message = M.login(username, password)
+    # print(result,message)
+    # result,message = M.select('INBOX')
+    # print(result,message)
+    # for t in M.list()[1]:
+    #     print(t.decode())
+
+    host = 'imap.qiye.163.com' #'imap.qiye.163.com' #'smtp.qiye.163.com'
+    username = 'baiquaninvest@baiquaninvest.com'
+    password = 'Baiquan1818'
+
     M = imaplib.IMAP4_SSL(host)
-    result,message = M.login(username, password)
-    print(result,message)
-    result,message = M.select('INBOX')
-    print(result,message)
-    for t in M.list()[1]:
-        print(t.decode())
+    M.login(username, password)
+
+    M.select('INBOX')
+    #_, allmails = M.search(None, 'ALL')  # 找到邮件 arg2 'UNSEEN'
+    _,allmails = M.uid('search',None,'UNSEEN')
+    mailids = allmails[0].decode().split()
+    print(mailids)
+    print(M.uid('search',None,'FLAGGED'))
+    M.uid('store',mailids[1],'+FLAGS','test')
+    print(M.uid('search',None,'FLAGGED'))
