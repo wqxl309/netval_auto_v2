@@ -1,6 +1,7 @@
 import threading
 import sys
 sys.path.append(r'E:\netval_auto_v2.0')
+from modules.emails_download.email_processor_product import *
 from modules.file_to_database.file_to_database import *
 from modules.netvalues_base.netvalues_base import *
 from modules.netvalues_calculation.netval_calculation import *
@@ -10,10 +11,22 @@ from products_info.products_info import *
 
 if __name__ == '__main__':
 
+    # 下载邮件估值表附件
+    host = 'imap.qiye.163.com' #'imap.qiye.163.com' #'smtp.qiye.163.com'
+    username = 'baiquaninvest@baiquaninvest.com'
+    password = 'Baiquan1818'
+    savepath = r'E:\估值表'
+    lastuidpath = r'E:\netval_auto_v2.0\modules\emails_download\last_uid.txt'
+    pfilter = EMAIL_FILTER
+    downloader = email_processor_product(host,username,password,savepath,lastuidpath,product_filters=pfilter)
+    downloader.download_imap4(downloadtype='ALL')
+
     # 更新估值表 至 数据库 采用多线程加速更新 须确保各个产品所在的线程更新完成后再开始计算该产品的净值
     update_treads = []
     for k in PRODUCTS_INFO:
         p = PRODUCTS_INFO[k]
+        if not p['updtbase']:
+            continue
         dbdir = os.path.join(dbdir_base,''.join(['rawdb_',p['nickname'],'.db']))
         filedir = os.path.join(filedir_base,''.join(['估值信息 ',p['pname']]))
         processor = rawfile_process(dbdir=dbdir,filedir=filedir,pcode=p['pcode'],pname=p['pname'])
@@ -33,6 +46,8 @@ if __name__ == '__main__':
     base_treads = []
     for k in PRODUCTS_INFO:
         p = PRODUCTS_INFO[k]
+        if not p['tkelement']:
+            continue
         dbdir = os.path.join(dbdir_base,''.join(['rawdb_',p['nickname'],'.db']))
         netdbdir = os.path.join(netdbdir_base,''.join(['netdb_',p['nickname'],'.db']))
         elements_extracter = netvalues_base(dbdir,netdbdir)
@@ -57,16 +72,11 @@ if __name__ == '__main__':
         else:
             earnvars = ['earn']
         p = PRODUCTS_INFO[k]
+        if not p['calcnet']:
+            continue
         netdbdir = os.path.join(netdbdir_base,''.join(['netdb_',p['nickname'],'.db']))
         calculator = netvalues_calculation(pname=p['pname'],netdbdir=netdbdir,confirmdays=p['confirmdays'],precision=p['precision'])
         calculator.generate_netvalues(earnvars = earnvars)
-    #     t = threading.Thread(target=calculator.generate_netvalues,args=(earnvars,))
-    #     calc_treads.append(t)
-    # for t in calc_treads:
-    #     t.start()
-    # for t in calc_treads:
-    #     t.join()
-    # del calc_treads
     print('netval calc update finished')
     print('')
     print('')
