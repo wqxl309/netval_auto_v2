@@ -34,7 +34,7 @@ class email_processor:
             M = imaplib.IMAP4(self._host)
         result,message = M.login(user=self._username, password=self._password)
         if result=='NO':
-            print('[+]{0} login failed : {1}'.format(self._username,message[0].decode()))
+            print('[-]{0} login failed : {1}'.format(self._username,message[0].decode()))
             return
         else:
             print('[+]{0} login Successfully !'.format(self._username))
@@ -159,7 +159,7 @@ class email_processor:
                 emailinfo['Time'] = timestr
         return emailinfo
 
-    def email_process(self,msg,pth,attachpatterns=None,savecontent=False):
+    def email_process(self,msg,pth,attachpatterns=None,savecontent=False,replace=False):
         """
             process single email, save the contents
             attachpatterns ex.{keywords:[k1,k2] , 'matchtype':'all' / 'any'}
@@ -182,7 +182,7 @@ class email_processor:
                         for pat in attachpatterns['keywords']:
                             haspat =  pat in filenm
                             if matchtype=='ALL' and (not haspat):  # 需要完全匹配 有未匹配项,匹配失败
-                                print("[+]Required pattern: {0} not found in attachment name: {1}".format(pat,filenm))
+                                print("[-]Required pattern: {0} not found in attachment name: {1}".format(pat,filenm))
                                 break  # 匹配失败 退出循环，没有可下载附件
                             elif matchtype=='ALL' and haspat: # 需要任一匹配 已有匹配项，匹配成功
                                 print("[+]Pattern: {0} found in attachment name: {1}".format(pat,filenm))
@@ -196,7 +196,7 @@ class email_processor:
                         result_file = os.path.join(pth,cname)
                 if result_file:  # file that need to be writen exists
                     try:
-                        if not os.path.exists(result_file):
+                        if not os.path.exists(result_file) or replace:
                             print('[+]Wringting file ...')
                             with open(result_file, "wb") as f:
                                 f.write(content)

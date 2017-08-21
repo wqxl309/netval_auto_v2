@@ -41,7 +41,7 @@ class email_processor_product(email_processor):
         self._product_filters = product_filters
         super(email_processor_product,self).__init__(protocol,host,username,password,savepath,needSSL)
 
-    def download_imap4(self,downloadtype='UNFLAGGED'):
+    def download_imap4(self,downloadtype='UNFLAGGED',replace = False):
         """ downloadtype ALL/UNFLAGGED"""
         if self._protocol not in ('imap','imap4'):
             raise BaseException('Slected protocol {0} while using IMAP !'.format(self._protocol))
@@ -60,7 +60,7 @@ class email_processor_product(email_processor):
         mailbox = 'INBOX'
         result,message = M.select(mailbox)
         if result=='NO':
-            print('[+]Select mailbox {0} failed for {1}'.format(mailbox,message[0].decode()))
+            print('[-]Select mailbox {0} failed for {1}'.format(mailbox,message[0].decode()))
         # extract all mail ids from appointed mail types
         _,allmails = M.uid('search',None, downloadtype)
         emailids = allmails[0].decode().split()
@@ -83,7 +83,7 @@ class email_processor_product(email_processor):
                         attachpatterns = {'keywords':self._product_filters[pname]['Attachment'],'matchtype':'ALL'}
                         if not os.path.exists(newpath):
                             os.system('mkdir %s' %newpath)
-                        self.email_process(msg=msg,pth=newpath,attachpatterns=attachpatterns,savecontent=False)
+                        self.email_process(msg=msg,pth=newpath,attachpatterns=attachpatterns,savecontent=False,replace=replace)
         except:
             raise
         # save lastuid only when emails are processed
@@ -95,10 +95,10 @@ class email_processor_product(email_processor):
                 print('[+]No email to download !')
         result,message = M.close()  # close the currently selected mailbox
         if result=='NO':
-            print('[+]Close mailbox {0} failed for {1}'.format(mailbox,message[0].decode()))
+            print('[-]Close mailbox {0} failed for {1}'.format(mailbox,message[0].decode()))
         result,message = M.logout()
         if result=='NO':
-            print('[+]{0} logout failed : {1}'.format(self._username,message[0].decode()))
+            print('[-]{0} logout failed : {1}'.format(self._username,message[0].decode()))
         else:
             print('[+]{0} logout Successfully !'.format(self._username))
 

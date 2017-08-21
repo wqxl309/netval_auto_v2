@@ -19,14 +19,13 @@ if __name__ == '__main__':
     lastuidpath = r'E:\netval_auto_v2.0\modules\emails_download\last_uid.txt'
     pfilter = EMAIL_FILTER
     downloader = email_processor_product(host,username,password,savepath,lastuidpath,product_filters=pfilter)
-    downloader.download_imap4(downloadtype='ALL')
+    downloader.download_imap4(downloadtype='ALL',replace=True)
     print()
     print()
 
     # 更新估值表 至 数据库 采用多线程加速更新 须确保各个产品所在的线程更新完成后再开始计算该产品的净值
     update_treads = []
-    for k in PRODUCTS_INFO:
-        p = PRODUCTS_INFO[k]
+    for p in PRODUCTS_INFO:
         if not p['updtbase']:
             continue
         dbdir = os.path.join(dbdir_base,''.join(['rawdb_',p['nickname'],'.db']))
@@ -46,8 +45,7 @@ if __name__ == '__main__':
 
     # 提取估值表基础元素
     base_treads = []
-    for k in PRODUCTS_INFO:
-        p = PRODUCTS_INFO[k]
+    for p in PRODUCTS_INFO:
         if not p['tkelement']:
             continue
         dbdir = os.path.join(dbdir_base,''.join(['rawdb_',p['nickname'],'.db']))
@@ -65,15 +63,14 @@ if __name__ == '__main__':
     print()
     print()
 
-    # 计算净值
+    # 计算净值 不用多线程 按制定顺序显示
     calc_treads = []
-    for k in PRODUCTS_INFO:
-        if k == '烜鼎鑫诚九号':
+    for p in PRODUCTS_INFO:
+        if p['pname'] == '烜鼎鑫诚九号':
             earnvars = ['earnAl','earnT']
             continue  # 目前估值表不全
         else:
             earnvars = ['earn']
-        p = PRODUCTS_INFO[k]
         if not p['calcnet']:
             continue
         netdbdir = os.path.join(netdbdir_base,''.join(['netdb_',p['nickname'],'.db']))
