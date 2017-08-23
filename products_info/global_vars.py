@@ -16,10 +16,10 @@ CODEDICT= \
                      'fee_keep':('2207.01',),'fee_management':('2206.01',),'earn':('2206.02',),'shares_buy':('1207.01',),'shares_sell':('2203.01',),'fee_other':('2241.99'),},
 
         'Baiquan2': {'sharenum':('实收资本','数量'),'assettot':('资产类合计:',),'debttot':('负债类合计:',),'assetnet':('基金资产净值:',),'fee_service':('2205',),
-                     'fee_keep':('2207',),'fee_management':('2206',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':(fill,),'fee_other':('224199'),},
+                     'fee_keep':('2207',),'fee_management':('2206',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':('2203',),'fee_other':('224199'),},
 
         'Baiquan3': {'sharenum':('实收资本','数量'),'assettot':('资产类合计：',),'debttot':('负债类合计：',),'assetnet':('资产资产净值：',),'fee_service':('221001',),
-                     'fee_keep':('220701',),'fee_management':('220601',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':(fill,),'fee_other':('224199'),},
+                     'fee_keep':('220701',),'fee_management':('220601',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':('2203',),'fee_other':('224199'),},
 
         'BaiquanJQ1':{'sharenum':('实收资本','数量'),'assettot':('资产合计',),'debttot':('负债合计',),'assetnet':('资产净值',),'fee_service':('2211.01',),
                       'fee_keep':('2207.01',),'fee_management':('2206.01',),'earn':('2206.02',),'shares_buy':('1207.01',),'shares_sell':('2203.01',),'fee_other':('2241.99'),},
@@ -28,7 +28,8 @@ CODEDICT= \
                       'fee_keep':('220701',),'fee_management':(fill,),'earn':(fill,),'shares_buy':('120701',),'shares_sell':('220301',),'fee_other':('224199'),},
 
         'BaiquanMS1':{'sharenum':('实收资本','数量'),'assettot':('资产类合计:',),'debttot':('负债类合计:',),'assetnet':('基金资产净值:',),'fee_service':('220501',),
-                      'fee_keep':('220701',),'fee_management':('220601',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':(fill,),'fee_other':('224199'),},
+                      'fee_keep':('220701',),'fee_management':('220601',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':('220301',),'fee_other':('224199'),},
+
 
         'BaiquanLS1':{'sharenum':('实收信托','数量'),'assettot':('资产类合计:',),'debttot':('负债类合计:',),'assetnet':('信托资产净值:',),'fee_service':('220501',),
                       'fee_keep':('220701',),'fee_management':('220601',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':(fill,),'fee_other':('224199'),},

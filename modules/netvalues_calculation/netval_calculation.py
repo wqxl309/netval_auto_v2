@@ -98,6 +98,9 @@ class netvalues_calculation:
             denominator = comptot.values[:-1]+(inout2+inout)[1:]
             rets[1:] = numerator/denominator-1
 
+            level = 0.1  # 异常收益情况检查
+            assert all(rets<level) and all(rets>-level) ,'abnormal return value, check data !'
+
             netvals = pd.DataFrame(np.column_stack([dates.values,netreal,netcum,np.cumprod(1+rets)*netreal[0],rets,amtchg,np.cumsum(amtchg)]),
                                  columns=['Date','NetSingle','NetCumulated','NetCompensated','CompReturns','AmtChg','AmtCumChg'])
             sql.to_sql(netvals,name='Net_Values',con=conn_net,if_exists='replace',index=False)
