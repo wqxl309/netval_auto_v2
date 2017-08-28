@@ -3,6 +3,7 @@ import re
 import xlrd
 
 from modules.database_assistant.database_assistant import *
+import modules.progress_demonstration.progress_demonstration as proshow
 
 class rawfile_process:
     """ 处理原始估值表的类 """
@@ -32,12 +33,12 @@ class rawfile_process:
         需要检查 self._product_name 与表格提取处的名称是否相同
         """
         if not os.path.exists(tabledir):
-            raise Exception('估值表路径不存在，拒绝提取表格名！')
+            raise Exception('[-]估值表路径不存在，拒绝提取表格名！')
         strings=tabledir.split('\\')   # 分割估值表 表格路径
         rawname = strings[-1]
         rawname_nofix=rawname.split('.')[0]  # 去除文件名中的 文件后缀 .xlsx
         if self._product_name not in rawname_nofix:
-            raise Exception('当前估值表名称中未检测出产品名称，请检查！')
+            raise Exception('[-]当前估值表名称中未检测出产品名称，请检查！')
         # 通过正则表达式寻找估值表名称中可能出现的不同格式的日期
         pattern = r'([1-9])([\d]{3})[-年]?([\d]{2})[-月]?([\d]{2})' # 第一个数字应该非0
         datefound = ''.join(re.search(pattern,rawname_nofix).groups())
@@ -64,9 +65,9 @@ class rawfile_process:
                 if date==datefound:
                     datecorrect = True
             if namecorrect & datecorrect:
-                print('%s passed check, ready for storage!' % tablename)
+                print('[+] %s passed check, ready for storage!' % tablename)
                 return tablename # 为了检查后写入数据库的时候不必再次提取tablename
-        raise Exception('%s failed check !' % tablename)    # 如果始终未检测到相应日期和产品名称，则报错
+        raise Exception('[-] %s failed check !' % tablename)    # 如果始终未检测到相应日期和产品名称，则报错
 
     def get_table_titles(self,tabledir,titlemark='科目代码',omitchars='-%'):
         """
@@ -99,7 +100,7 @@ class rawfile_process:
         """
         hasdb=os.path.exists(self._dbdir)  # 写入前数据库必须存在，数据库的建立在方法外实现
         if not hasdb:
-            print('Database does NOT exist, no update!')
+            print('[-]Database does NOT exist, no update!')
             return
         self.table_info_check(tabledir=tabledir,datemark='日期')   # 写入前需先检查估值表内容
         rawtitles = self.get_table_titles(tabledir=tabledir,titlemark=titlemark,omitchars=omitchars)  # 从估值表中提取初始标题
@@ -122,32 +123,35 @@ class rawfile_process:
                     startline = dumi
                     break
             if startline==-1: # 读完整个文件都没找到起始行则程序报错
-                raise Exception('Can not find startline for table : %s' % tablename)
+                raise Exception('[-]Can not find startline for table : %s' % tablename)
             # 已经找到正文起始行，开始写入数据库
             cursor = db.connection.cursor()
             try:
+                print('[*]Writing main body of the table...')
+                demonstrator = proshow.progress_demonstrator(table.nrows-startline)
                 for dumi in range(startline,table.nrows):  # 开始从正文行写入
                     exeline=''.join(['INSERT INTO ',tablename,' VALUES (',','.join(['?']*len(titles)),')'])
                     cursor.execute(exeline , tuple(table.row_values(dumi)))
                     db.connection.commit()
+                    demonstrator.progress_show(currentnum=dumi-startline+1,title=tablename)
             except: # 无论任何原因导致写入table失败，则都要删除未写完的table
-                print('Writing table %s failed !' % tablename)
+                print('[-]Writing table %s failed !' % tablename)
                 db.connection.execute(' '.join(['DROP TABLE',tablename]))
-                print('Failed table %s dropped !' % tablename)
+                print('[+]Failed table %s dropped !' % tablename)
                 raise
             else: # 如果表格正常完成更新，则需将其原始名称写入 SAVED_TABLES 数据表用作记录
                 cursor.execute('INSERT INTO SAVED_TABLES VALUES (?)',(tbname_dict['rawname'],))  # 需要一个 tuple 作为输入
                 db.connection.commit()
-                print('Writing table %s succed !' % tablename)
+                print('[+]Writing table %s succed !' % tablename)
 
     def update_database(self,vartypes):
         newtables = self.get_newtables()
         if not newtables:
-            print('%s : No new tables to save in db !' % self._product_name)
+            print('[+] %s : No new tables to save in db !' % self._product_name)
             return
         for table in newtables:
             tabledir = os.path.join(self._filedir,table)
             tablename_dict = self.get_tablenames(tabledir)
             self.table_to_db(tbname_dict=tablename_dict,tabledir=tabledir,varstypes=vartypes,datemark='日期',titlemark='科目代码',omitchars='-%',defaluttype = 'REAL',replace=True)
-        print('%s Database update finished !' % self._product_name)
+        print('[+] %s Database update finished !' % self._product_name)
 

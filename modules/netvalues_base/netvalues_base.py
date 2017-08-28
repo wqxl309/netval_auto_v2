@@ -34,7 +34,7 @@ class netvalues_base:
         """
         # 从数据库中的估值表中提取需要的字段的值，并赋予标准化名称
         if not codedict:
-            print('Codedict is empty can not update table : %s' % tablename)
+            print('[-]Codedict is empty can not update table : %s' % tablename)
         output_dict = {} # 存储提取出的数值的字典
         rev_codedict = {} # 以行名(indexmark列对应的值)为KEY
         valcols = [indexmark]
@@ -57,7 +57,7 @@ class netvalues_base:
                     valmark = col
                     break
             if not valmark:
-                raise Exception('在表格 %s 中没有匹配到存储数值的列' %tablename)
+                raise Exception('[-]在表格 %s 中没有匹配到存储数值的列' %tablename)
             else:
                 valcols.insert(1,valmark)
             cursor = db.connection.cursor()
@@ -84,25 +84,25 @@ class netvalues_base:
                 cursor.execute(exeline,tuple(base_values))
                 netdb.connection.commit()
             except:
-                print('Update Net_Values_Base with table %s failed !' %tablename)
+                print('[-]Update Net_Values_Base with table %s failed !' %tablename)
                 raise
             else:
                 cursor.execute('INSERT INTO PROCESSED_TABLES VALUES (?)',(tablename,))  # 需要一个 tuple 作为输入
                 netdb.connection.commit()
-                print('Update Net_Values_Base with table %s succed !' %tablename)
+                print('[+]Update Net_Values_Base with table %s succed !' %tablename)
 
     def update_netdb(self,codedict,indexmark='科目代码',defaultvalcols=('市值','市值本币')):
         """ 将所有需要更新的表格的基础元素逐一写入数据库 """
         if not codedict:    # 没有提供codedict
-            print('No codedict provided,not updating')
+            print('[-]No codedict provided,not updating')
             return
         newtables = self.get_newtables()  # 提取还未更新的表格的列表
         if newtables:
             for tablename in newtables:
                 self.table_to_netdb(tablename=tablename,codedict=codedict,indexmark=indexmark,defaultvalcols=defaultvalcols)
-            print('Updated Net_Values_Base from %s to %s ' %(newtables[0][-8:],newtables[-1][-8:]))
+            print('[+]Updated Net_Values_Base from %s to %s ' %(newtables[0][-8:],newtables[-1][-8:]))
         else:
-            print('Netval_db already update to the latest !')
+            print('[+]Netval_db already update to the latest !')
 
     def check_dupicate_netdb(self):
         """ 检查表格中是否有重复日期 """
