@@ -1,4 +1,4 @@
-#coding=utf-8
+
 import email
 import email.parser
 import io
@@ -69,7 +69,10 @@ class email_processor_product(email_processor):
             idlist = emailids[(startpos+1):]
         except ValueError:
             idlist = emailids
-        try:
+        if not idlist:
+            print('[+]No email to download !')
+        else:
+            print('[*] {0} emails to download ...'.format(str(len(idlist))))
             for emlid in idlist:
                 tp,emldata = M.uid('fetch',emlid, '(RFC822)')
                 msg = self.email_parse(emldata=emldata[0][1],ftype='bytes')
@@ -83,17 +86,17 @@ class email_processor_product(email_processor):
                         attachpatterns = {'keywords':self._product_filters[pname]['Attachment'],'matchtype':'ALL'}
                         if not os.path.exists(newpath):
                             os.system('mkdir %s' %newpath)
-                        self.email_process(msg=msg,pth=newpath,attachpatterns=attachpatterns,savecontent=False,replace=replace)
-        except:
-            raise
-        # save lastuid only when emails are processed
-        else:
-            if idlist: # make sure idlist is not empty
-                with open(self._lastuidpath,'w') as uid:
-                    uid.write(idlist[-1])
-            else:
-                print('[+]No email to download !')
-        result,message = M.close()  # close the currently selected mailbox
+                        try:  # download attahcment
+                            self.email_process(msg=msg,pth=newpath,attachpatterns=attachpatterns,savecontent=False,replace=replace)
+                        except:
+                            print('[-]Attachment download failed for {0}'.format(pname))
+                            raise
+                        else:
+                            # save lastuid only when emails are processed
+                            with open(self._lastuidpath,'w') as uid:
+                                uid.write(emlid)
+        # close the currently selected mailbox
+        result,message = M.close()
         if result=='NO':
             print('[-]Close mailbox {0} failed for {1}'.format(mailbox,message[0].decode()))
         result,message = M.logout()
