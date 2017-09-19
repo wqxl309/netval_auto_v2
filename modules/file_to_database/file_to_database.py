@@ -64,6 +64,9 @@ class rawfile_process:
                 datefound = ''.join(re.search(pattern,tocheck).groups())
                 if date==datefound:
                     datecorrect = True
+                else: # 找到日期但日期不对
+                    print('[-]Wrong table date , date found inise:{0}'.format(datefound))
+                    raise Exception('[-] %s failed check !' % tablename)
             if namecorrect & datecorrect:
                 print('[+] %s passed check, ready for storage!' % tablename)
                 return tablename # 为了检查后写入数据库的时候不必再次提取tablename
@@ -85,7 +88,7 @@ class rawfile_process:
                     titles[dumj] = titles[dumj].strip(omitchars)   # 逐个删除标题的无效字符
                     titles[dumj] = titles[dumj].replace(' ','')    # 去除字段中空格
                     titles[dumj] = titles[dumj].replace('-','')    # - 无法被strip what the fuck？
-                    if titles[dumj]=='':   # 处理标题为空的情况： 此时dumj-1 对应列应为 市值、估值增值 等
+                    if titles[dumj]=='' or titles[dumj] == titles[dumj-1]:   # 处理标题为空\标题重复 的情况： 此时dumj-1 对应列应为 市值、估值增值 等
                         titles[dumj] = titles[dumj-1]+'本币'
                         titles[dumj-1] += '原币'
                 return titles  # 找到标题即返回
