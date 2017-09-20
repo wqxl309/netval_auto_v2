@@ -6,7 +6,7 @@ from pandas.io import sql
 from remotewind import w
 #from WindPy import w
 
-from modules.database_assistant.database_assistant import *
+import database_assistant.DatabaseAssistant as da
 
 class netvalues_calculation:
     """ 根据 netvalues_base 里面提取出的基础数据计算产品净值 """
@@ -21,7 +21,7 @@ class netvalues_calculation:
         digits = self.precision
         confirmdays = self.confirmdays
         w.start()
-        with db_assistant(self.netdbdir) as netdb:
+        with da.DatabaseAssistant(self.netdbdir) as netdb:
             conn_net = netdb.connection
             basedata = pd.read_sql('SELECT * FROM Net_Values_Base',conn_net)  #提取基础数据
             sorteddata = basedata.sort_values(['date'],ascending=[1])     # 将数据根据日期排序，防止有些估值表发送较晚，更新靠后的情况

@@ -1,8 +1,7 @@
 import os
 import re
 import xlrd
-
-from modules.database_assistant.database_assistant import *
+import database_assistant.DatabaseAssistant as da
 import modules.progress_demonstration.progress_demonstration as proshow
 
 class rawfile_process:
@@ -18,7 +17,7 @@ class rawfile_process:
         提取已下载但还未存入数据库 的 估值表的名称，为估值表原始名称 包含文件后缀
         """
         currntbs = set(os.listdir(self._filedir))      # 文件夹中当前存储的估值表
-        with db_assistant(dbdir = self._dbdir) as db:
+        with da.DatabaseAssistant(dbdir = self._dbdir) as db:
             cursor = db.connection.cursor()
             db.create_db_table(tablename='SAVED_TABLES',titles=['TableNames TEXT'],replace=False)
             temp = cursor.execute('SELECT * FROM SAVED_TABLES').fetchall()
@@ -108,9 +107,9 @@ class rawfile_process:
         self.table_info_check(tabledir=tabledir,datemark='日期')   # 写入前需先检查估值表内容
         rawtitles = self.get_table_titles(tabledir=tabledir,titlemark=titlemark,omitchars=omitchars)  # 从估值表中提取初始标题
         markpos = rawtitles.index(titlemark)  # titlemark 所在的标题行的位置
-        titles = db_assistant.gen_table_titles(titles=rawtitles,varstypes=varstypes,defaluttype = defaluttype)['typed_titles']  # 标注了字段类型的标题
+        titles = da.DatabaseAssistant.gen_table_titles(titles=rawtitles,varstypes=varstypes,defaluttype = defaluttype)['typed_titles']  # 标注了字段类型的标题
         tablename = tbname_dict['tablename']
-        with db_assistant(dbdir = self._dbdir) as db:
+        with da.DatabaseAssistant(dbdir = self._dbdir) as db:
             db.create_db_table(tablename=tablename,titles=titles,replace=replace)  # 创建表格
             data = xlrd.open_workbook(tabledir)
             table = data.sheets()[0]
@@ -135,7 +134,7 @@ class rawfile_process:
                 for dumi in range(startline,table.nrows):  # 开始从正文行写入
                     exeline=''.join(['INSERT INTO ',tablename,' VALUES (',','.join(['?']*len(titles)),')'])
                     cursor.execute(exeline , tuple(table.row_values(dumi)))
-                    db.connection.commit()
+                    #db.connection.commit()
                     demonstrator.progress_show(currentnum=dumi-startline+1,title=tablename)
             except: # 无论任何原因导致写入table失败，则都要删除未写完的table
                 print('[-]Writing table %s failed !' % tablename)
@@ -144,7 +143,7 @@ class rawfile_process:
                 raise
             else: # 如果表格正常完成更新，则需将其原始名称写入 SAVED_TABLES 数据表用作记录
                 cursor.execute('INSERT INTO SAVED_TABLES VALUES (?)',(tbname_dict['rawname'],))  # 需要一个 tuple 作为输入
-                db.connection.commit()
+                db.connection.commit() # 完成后再统一commit
                 print('[+]Writing table %s succed !' % tablename)
 
     def update_database(self,vartypes):

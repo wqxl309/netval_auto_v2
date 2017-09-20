@@ -1,5 +1,5 @@
 
-from modules.database_assistant.database_assistant import *
+import database_assistant.DatabaseAssistant as da
 
 class netvalues_base:
     """ 从已存储到数据库的估值表中，提取信息并计算净值的类 """
@@ -11,11 +11,11 @@ class netvalues_base:
         """
         提取已存储至数据库但还未处理 的 估值表的名称（数据库标准名称格式：产品代码_产品名称_日期）
         """
-        with db_assistant(dbdir=self._dbdir) as db:
+        with da.DatabaseAssistant(dbdir=self._dbdir) as db:
             temp = db.get_db_tablenames()
             temp.remove('SAVED_TABLES')
             savedtbs = set(temp)
-        with db_assistant(dbdir=self._netdbdir) as netdb:
+        with da.DatabaseAssistant(dbdir=self._netdbdir) as netdb:
             cursor = netdb.connection.cursor()
             netdb.create_db_table(tablename='PROCESSED_TABLES',titles=['TableNames TEXT'],replace=False)
             temp = cursor.execute('SELECT * FROM PROCESSED_TABLES')
@@ -48,7 +48,7 @@ class netvalues_base:
                 rev_codedict[cditem[0]] = (cd,)
         #rev_codedict = {v[0]:k for k,v in codedict.items()}   # 以行名为KEY，对应要素表列名为值的字典
         # 提取数据
-        with db_assistant(self._dbdir) as db:
+        with da.DatabaseAssistant(self._dbdir) as db:
             cols = db.get_table_cols(tablename)
             # 匹配用作存储的值，同一只产品有些会是市值 、有些市值本币 所以需要逐一匹配
             valmark = None
@@ -71,7 +71,7 @@ class netvalues_base:
                     output_dict[item[0]] = row[valcols.index(itemcol)]
         # 写入 netdb 元素表
         filedate = tablename[-8:]
-        with db_assistant(self._netdbdir) as netdb:
+        with da.DatabaseAssistant(self._netdbdir) as netdb:
             base_titles = ['date TEXT']
             base_values = [filedate]
             for cd in sorted(output_dict):
