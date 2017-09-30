@@ -1,11 +1,13 @@
-
+import os
 import database_assistant.DatabaseAssistant as da
 
 class netvalues_base:
     """ 从已存储到数据库的估值表中，提取信息并计算净值的类 """
-    def __init__(self,dbdir,netdbdir):
-        self._dbdir = dbdir               # 存储估值表信息的数据库
-        self._netdbdir = netdbdir             # 存储净值信息的数据库
+    def __init__(self,dbdirbase,netdbdirbase,pname,pnickname):
+        self._dbdir = os.path.join(dbdirbase,''.join(['rawdb_',pnickname,'.db']))               # 存储估值表信息的数据库
+        self._netdbdir = os.path.join(netdbdirbase,''.join(['netdb_',pnickname,'.db']))             # 存储净值信息的数据库
+        self._product_name = pname  # 产品中文名称
+        self._product_nickname = pnickname # 产品英文名称
 
     def get_newtables(self):
         """

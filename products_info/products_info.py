@@ -9,6 +9,7 @@ PRODUCTS_INFO = \
         {'dlemail':True,'updtbase':True,'tkelement':True,'calcnet':True,'pname':'百泉进取一号','pcode':'SM7753','ipodate':dt.date(2016,11, 3),'confirmdays':2,'precision':4,'nickname':'BaiquanJQ1'},
         {'dlemail':True,'updtbase':True,'tkelement':True,'calcnet':True,'pname':'百泉汇瑾一号','pcode':'SN4286','ipodate':dt.date(2016,11,24),'confirmdays':2,'precision':3,'nickname':'BaiquanHJ1'},
         {'dlemail':True,'updtbase':True,'tkelement':True,'calcnet':True,'pname':'百泉多策略一号','pcode':'SS6021','ipodate':dt.date(2017, 4, 7),'confirmdays':2,'precision':3,'nickname':'BaiquanMS1'},
+        {'dlemail':True,'updtbase':True,'tkelement':True,'calcnet':True,'pname':'百泉多策略二号','pcode':'SX0693','ipodate':dt.date(2017, 9, 21),'confirmdays':2,'precision':3,'nickname':'BaiquanMS2'},
 
         {'dlemail':True,'updtbase':True,'tkelement':True,'calcnet':True,'pname':'百泉砺石一号','pcode':'None','ipodate':dt.date(2017,4,19), 'confirmdays':2,'precision':4,'nickname':'BaiquanLS1'},
         {'dlemail':True,'updtbase':True,'tkelement':True,'calcnet':True,'pname':'国道砺石二号','pcode':'SM8060','ipodate':dt.date(2016,10,10), 'confirmdays':2,'precision':4,'nickname':'GuodaoLS2'},
@@ -25,6 +26,7 @@ EMAIL_FILTER = \
         '百泉进取一号':{'Subject':['SM7753','百泉进取一号'],'Attachment':['SM7753','百泉进取一号','估值表']},
         '百泉汇瑾一号':{'Subject':['SN4286','百泉汇瑾一号','估值表'],'Attachment':['SN4286','百泉汇瑾一号']},
         '百泉多策略一号':{'Subject':['SS6021','百泉多策略一号','估值表'],'Attachment':['SS6021','百泉多策略一号']},
+        '百泉多策略二号':{'Subject':['SX0693','百泉多策略二号','估值表'],'Attachment':['SX0693','百泉多策略二号']},
 
         #'百泉砺石一号':{'Subject':['粤财信托','百泉汇瑾一号','估值表']},'Attachment':{['粤财信托','百泉汇瑾一号','估值表']}},
         #'国道砺石二号':{'Subject':[],'Attachment':{}},

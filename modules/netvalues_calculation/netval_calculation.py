@@ -1,5 +1,5 @@
 import datetime as dt
-
+import os
 import numpy as np
 import pandas as pd
 from pandas.io import sql
@@ -10,13 +10,14 @@ import database_assistant.DatabaseAssistant as da
 
 class netvalues_calculation:
     """ 根据 netvalues_base 里面提取出的基础数据计算产品净值 """
-    def __init__(self,pname,netdbdir,confirmdays,precision):
+    def __init__(self,netdbdirbase,pname,pnickname,confirmdays,precision):
         self.pname = pname
-        self.netdbdir = netdbdir
+        self.pnickname = pnickname
+        self.netdbdir = os.path.join(netdbdirbase,''.join(['netdb_',pnickname,'.db']))
         self.confirmdays = confirmdays
         self.precision = precision
 
-    def generate_netvalues(self,earnvars = ['earn']):
+    def generate_netvalues(self,earnvars = ('earn')):
         """ 从头计算净值表，包括全部日期（包含非交易日） 暂时未考虑融券情况 """
         digits = self.precision
         confirmdays = self.confirmdays

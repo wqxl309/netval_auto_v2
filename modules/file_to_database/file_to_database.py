@@ -6,11 +6,12 @@ import modules.progress_demonstration.progress_demonstration as proshow
 
 class rawfile_process:
     """ 处理原始估值表的类 """
-    def __init__(self,dbdir,filedir,pcode,pname):
-        self._dbdir = dbdir
-        self._filedir = filedir
-        self._product_code = pcode  # 产品代码 需继承类提供
-        self._product_name = pname  # 产品名称 需继承类提供
+    def __init__(self,dbdirbase,filedirbase,pcode,pname,pnickname):
+        self._dbdir = os.path.join(dbdirbase,''.join(['rawdb_',pnickname,'.db']))
+        self._filedir = os.path.join(filedirbase,''.join(['估值信息 ',pname]))
+        self._product_code = pcode  # 产品代码
+        self._product_name = pname  # 产品中文名称
+        self._product_nickname = pnickname # 产品英文名称
 
     def get_newtables(self):
         """

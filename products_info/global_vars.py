@@ -1,7 +1,7 @@
 
-dbdir_base = r'E:\netval_auto_v2.0\database_rawfile'
-netdbdir_base = r'E:\netval_auto_v2.0\database_netvalue'
-filedir_base = r'E:\估值表'
+BASE_DBDIR = r'E:\netval_auto_v2.0\database_rawfile'
+BASE_NETDBDIR = r'E:\netval_auto_v2.0\database_netvalue'
+BASE_FILEDIR = r'E:\估值表'
 
 
 #extract_codes = ['sharenum',),'assettot',),'debttot',),'assetnet',),'fee_service',),'fee_keep',),'fee_management',),'earn',),'shares_buy',),'shares_sell']
@@ -30,9 +30,12 @@ CODEDICT= \
         'BaiquanMS1':{'sharenum':('实收资本','数量'),'assettot':('资产类合计:',),'debttot':('负债类合计:',),'assetnet':('基金资产净值:',),'fee_service':('220501',),
                       'fee_keep':('220701',),'fee_management':('220601',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':('220301',),'fee_other':('224199'),},
 
+        'BaiquanMS2':{'sharenum':('实收资本','数量'),'assettot':('资产类合计:',),'debttot':('负债类合计:',),'assetnet':('基金资产净值:',),'fee_service':('220501',),
+                      'fee_keep':('220701',),'fee_management':('220601',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':('220301',),'fee_other':('224199'),},
 
         'BaiquanLS1':{'sharenum':('实收信托','数量'),'assettot':('资产类合计:',),'debttot':('负债类合计:',),'assetnet':('信托资产净值:',),'fee_service':('220501',),
                       'fee_keep':('220701',),'fee_management':('220601',),'earn':(fill,),'shares_buy':(fill,),'shares_sell':(fill,),'fee_other':('224199'),},
+
 
         'GuodaoLS2':{'sharenum':('实收资本','数量'),'assettot':('资产合计',),'debttot':('负债合计',),'assetnet':('资产净值',),'fee_service':('2208.02',),
                      'fee_keep':('2207.01',),'fee_management':('2206.01',),'earn':('2206.02',),'shares_buy':('1207.01',),'shares_sell':('2203.01',),'fee_other':('2241.99'),},
