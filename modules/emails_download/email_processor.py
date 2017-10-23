@@ -107,42 +107,67 @@ class email_processor:
             raise BaseException('[-]Unrecognized emldata type!')
         return msg
 
-    def email_info(self,msg,elements=('Date','Time','From','Subject')):
+    def header_decoder(self,header,default_decode='gbk'):
+        """ decode the single header (of type list) and return the decoded header as a str,
+            should deal with situation when header[0][1] is 'unknown-8bit'
+        """
+        if header[0][1] is None:  # need to deal with header[0][0] is str
+            hdstr = header[0][0] if isinstance(header[0][0],str) else header[0][0].decode()
+        else:   # need to deal with hd[1] is unknown decoding ex. 'unknown-8bit'
+            hdstr = header[0][0].decode(default_decode) if 'unknown' in header[0][1] else header[0][0].decode(header[0][1])
+        return hdstr
+
+    def email_info(self,msg,elements=('Date','Time','From','Subject'),default_decode='gbk'):
         emailinfo = {}
         if 'Subject' in elements:
             # get subject
             sub = msg.get('Subject')
             subh= email.header.decode_header(sub)
-            if subh[0][1] is None:
-                substr = subh[0][0].decode() if type(subh[0][0]) is bytes else subh[0][0]
-            else:
-                try:
-                    substr = subh[0][0].decode(subh[0][1])
-                except AttributeError:
-                    substr = subh[0][0]
-            emailinfo['Subject'] = substr
+            # if subh[0][1] is None:
+            #     substr = subh[0][0].decode() if type(subh[0][0]) is bytes else subh[0][0]
+            # else:
+            #     try:
+            #         substr = subh[0][0].decode(subh[0][1])
+            #     except AttributeError:
+            #         substr = subh[0][0]
+            # emailinfo['Subject'] = substr
+            emailinfo['Subject'] = self.header_decoder(header=subh,default_decode=default_decode)
         if 'From' in elements:
-            # get sender's email
+            # get sender's email address
             fromh = email.header.decode_header(msg.get('From'))
-            for fh in fromh:
-                if fh[1] is None:
-                    try:
-                        fromstr = fh[0].decode()
-                    except AttributeError:
-                        fromstr = fh[0]
-                    if '<' in fromstr and '>' in fromstr:
-                        matched = re.search('<[\w\W]+@[\w\W]+>',fromstr)
-                        if matched is not None:
-                            fromstr = matched.group()[1:-1]
-                            break
-                    else:
-                        matched = re.search('[\w\W]+@[\w\W]+',fromstr)
-                        if matched is not None:
-                            fromstr = matched.group()
-                            break
+            fromstr = self.header_decoder(header=fromh,default_decode=default_decode)
+            if '<' in fromstr and '>' in fromstr:
+                matched = re.search('<[\w\W]+@[\w\W]+>',fromstr)
+                if matched is not None:
+                    fromaddr = matched.group()[1:-1]
+                else:
+                    fromaddr = None
             else:
-                fromstr = None
-            emailinfo['From'] = fromstr
+                matched = re.search('[\w\W]+@[\w\W]+',fromstr)
+                if matched is not None:
+                    fromaddr = matched.group()
+                else:
+                    fromaddr = None
+            emailinfo['From'] = fromaddr
+            # for fh in fromh:
+            #     if fh[1] is None:
+            #         try:
+            #             fromstr = fh[0].decode()
+            #         except AttributeError:
+            #             fromstr = fh[0]
+            #         if '<' in fromstr and '>' in fromstr:
+            #             matched = re.search('<[\w\W]+@[\w\W]+>',fromstr)
+            #             if matched is not None:
+            #                 fromstr = matched.group()[1:-1]
+            #                 break
+            #         else:
+            #             matched = re.search('[\w\W]+@[\w\W]+',fromstr)
+            #             if matched is not None:
+            #                 fromstr = matched.group()
+            #                 break
+            # else:
+            #     fromstr = None
+            # emailinfo['From'] = fromstr
         if 'Date' in elements:  # can not take Time only without date !
             # get date and time
             dttm = msg.get('Date')
