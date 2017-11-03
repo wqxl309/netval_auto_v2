@@ -74,5 +74,7 @@ if __name__ == '__main__':
             calculator.generate_netvalues(earnvars = earnvars)
         print('netval calc update finished')
     except BaseException as e:
+        import traceback
+        traceback.print_exc()
         print('Error %s' %e)
         os.system('PAUSE')

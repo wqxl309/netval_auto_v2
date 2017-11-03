@@ -153,6 +153,7 @@ class rawfile_process:
             print('[+] %s : No new tables to save in db !' % self._product_name)
             return
         for table in newtables:
+            print('[*]updating table {0}'.format(table))
             tabledir = os.path.join(self._filedir,table)
             tablename_dict = self.get_tablenames(tabledir)
             self.table_to_db(tbname_dict=tablename_dict,tabledir=tabledir,varstypes=vartypes,datemark='日期',titlemark='科目代码',omitchars='-%',defaluttype = 'REAL',replace=True)
