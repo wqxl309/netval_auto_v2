@@ -1,5 +1,8 @@
-from main_output_net.output_functions import *
 from remotewind import w
+
+from main_output_net.output_functions import get_configure
+from main_output_net.output_functions import generate_output
+
 
 
 if __name__=='__main__':

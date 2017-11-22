@@ -1,8 +1,10 @@
 import os
 
-from products_info.products_info import *
-from modules.netvalues_output.netval_output import *
-from modules.netvalues_indicators.netval_indicators import *
+import pandas as pd
+
+from products_info.products_info import PRODUCTS_INFO
+from modules.netvalues_output.netval_output import netval_output
+from modules.netvalues_indicators.netval_indicators import indicators
 
 
 def get_configure(confdir):
@@ -45,13 +47,17 @@ def generate_output(products,outdir,startdate=False,enddate=False,freq='week',mk
     writer_netval = pd.ExcelWriter(outdir)
     netvalues = {}
     for p in products:
-        netdbdir = os.path.join(netdbfolder,''.join(['netdb_',PRODUCTS_INFO[p]['nickname'],'.db']))
-        ipodate = PRODUCTS_INFO[p]['ipodate']
+        for prod in PRODUCTS_INFO:
+            if p==prod['pname']:
+                p = prod
+                break
+        netdbdir = os.path.join(netdbfolder,''.join(['netdb_',p['nickname'],'.db']))
+        ipodate = p['ipodate']
         outobj = netval_output(netdbdir=netdbdir,ipodate=ipodate)
         netvals = outobj.take_netvalues(startdate=startdate,enddate=enddate,freq=freq,mktidx=mktidx,regmktidx=False)
         if netvals is not None:  # 有数才输出
-            netvals.to_excel(writer_netval,sheet_name=p,index=False)
-        netvalues[p] = netvals
+            netvals.to_excel(writer_netval,sheet_name=p['pname'],index=False)
+        netvalues[p['pname']] = netvals
     writer_netval.save()
 
     if indicators_info:
